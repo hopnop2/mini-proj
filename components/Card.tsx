@@ -8,7 +8,7 @@ interface CardProps {
   todo: Todo;
 }
 
-// Card Component
+// Card Component with Black & White Theme
 export default function Card({ todo }: CardProps) {
   const { removeTodo, toggleTodo } = useContext(TodoContext);
 
@@ -28,21 +28,21 @@ export default function Card({ todo }: CardProps) {
     <TouchableOpacity
       style={styles.todoCard}
       onLongPress={() => handleRemoveTodo(todo.id)}
-      activeOpacity={0.5}
-      key={todo.id}
+      activeOpacity={0.7} // ปรับ opacity เมื่อกด
     >
       {/* Checkbox for toggling todo status */}
       <Checkbox.Item
         label=""
         status={todo.done ? "checked" : "unchecked"}
         onPress={() => toggleTodo?.(todo.id)}
+        color="#000000" // สี Checkbox เป็นดำ
       />
 
       {/* Todo title */}
       <Text style={styles.todoTitle}>{todo.text}</Text>
 
       {/* Todo timestamp */}
-      <Text>
+      <Text style={styles.timestamp}>
         {new Date(todo.timestamp!).toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
@@ -52,27 +52,35 @@ export default function Card({ todo }: CardProps) {
   );
 }
 
-// Styles for the Card component
+// Styles for the Card component with Black & White Theme
 const styles = StyleSheet.create({
   todoCard: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 10,
-    paddingVertical: 30,
+    paddingHorizontal: 15,
+    paddingVertical: 20,
     marginVertical: 10,
-    backgroundColor: "#f9f9f9",
-    borderRadius: 5,
-    elevation: 2, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: "#FFFFFF", // พื้นหลังสีขาว
+    borderWidth: 1, // เส้นขอบสีดำ
+    borderColor: "#000000",
+    borderRadius: 8, // มุมโค้งเล็กน้อย
+    elevation: 2, // เงาสำหรับ Android
+    shadowColor: "#000000", // เงาสำหรับ iOS
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
   },
   todoTitle: {
     fontSize: 18,
-    fontWeight: "500",
-    flex: 1, // Allow title to take available space
-    marginLeft: 10, // Space between checkbox and title
+    fontWeight: "600", // หนาขึ้นเล็กน้อย
+    color: "#000000", // สีดำ
+    flex: 1, // ขยายเต็มพื้นที่
+    marginLeft: 10, // ระยะห่างจาก Checkbox
+  },
+  timestamp: {
+    fontSize: 14,
+    color: "#666666", // สีเทาเข้มเพื่อไม่ให้เด่นเกิน
+    marginLeft: 10,
   },
 });
