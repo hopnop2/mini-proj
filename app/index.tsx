@@ -1,13 +1,29 @@
 import { useContext, useState } from "react";
-import { Modal, StyleSheet, Text, TouchableOpacity, View, SafeAreaView, ScrollView } from "react-native";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
 import { Link } from "expo-router";
 import { AppButton } from "@/components";
 import TodoContext, { Todo } from "@/context/Todo.context";
 import Card from "@/components/Card";
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 
 // Custom Alert Component (ปรับเป็นภาษาไทย)
-const CustomAlert = ({ visible, onConfirm, onCancel }: { visible: boolean; onConfirm: () => void; onCancel: () => void }) => {
+const CustomAlert = ({
+  visible,
+  onConfirm,
+  onCancel,
+}: {
+  visible: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) => {
   return (
     <Modal
       animationType="fade"
@@ -18,12 +34,20 @@ const CustomAlert = ({ visible, onConfirm, onCancel }: { visible: boolean; onCon
       <View style={styles.alertOverlay}>
         <View style={styles.alertContent}>
           <Text style={styles.alertTitle}>ลบรายการ</Text>
-          <Text style={styles.alertMessage}>คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</Text>
+          <Text style={styles.alertMessage}>
+            คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?
+          </Text>
           <View style={styles.alertButtonContainer}>
-            <TouchableOpacity style={styles.alertCancelButton} onPress={onCancel}>
+            <TouchableOpacity
+              style={styles.alertCancelButton}
+              onPress={onCancel}
+            >
               <Text style={styles.alertButtonText}>ยกเลิก</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.alertConfirmButton} onPress={onConfirm}>
+            <TouchableOpacity
+              style={styles.alertConfirmButton}
+              onPress={onConfirm}
+            >
               <Text style={styles.alertButtonText}>ยืนยัน</Text>
             </TouchableOpacity>
           </View>
@@ -34,11 +58,12 @@ const CustomAlert = ({ visible, onConfirm, onCancel }: { visible: boolean; onCon
 };
 
 export default function Index() {
-  const { todos, removeTodo } = useContext(TodoContext); // แก้จาก deleteTodo เป็น removeTodo
+  const { todos, removeTodo } = useContext(TodoContext);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
+  const [menuVisible, setMenuVisible] = useState(false); // State สำหรับเมนูป๊อปอัพ
 
   const openPopup = (todo: Todo) => {
     setSelectedTodo(todo);
@@ -50,25 +75,32 @@ export default function Index() {
     setSelectedTodo(null);
   };
 
-  // แสดง Alert เมื่อกดค้าง
   const showDeleteAlert = (todo: Todo) => {
     setTodoToDelete(todo);
     setAlertVisible(true);
   };
 
-  // ยืนยันการลบ
   const confirmDelete = () => {
     if (todoToDelete && removeTodo) {
-      removeTodo(todoToDelete.id); // แก้จาก deleteTodo เป็น removeTodo
+      removeTodo(todoToDelete.id);
       setAlertVisible(false);
       setTodoToDelete(null);
     }
   };
 
-  // ยกเลิกการลบ
   const cancelDelete = () => {
     setAlertVisible(false);
     setTodoToDelete(null);
+  };
+
+  const toggleMenu = () => {
+    setMenuVisible(!menuVisible);
+  };
+
+  const handleLogout = () => {
+    setMenuVisible(false);
+    // ใส่逻辑การล็อกเอาท์ที่นี่ เช่น ล้างข้อมูลผู้ใช้ หรือเปลี่ยนหน้าไป login
+    console.log("Logged out");
   };
 
   return (
@@ -77,9 +109,21 @@ export default function Index() {
         {/* Header Section */}
         <View style={styles.headerContainer}>
           <View style={styles.headerWrapper}>
-            <Ionicons name="book-outline" size={34} color="#000000" style={styles.headerIconLeft} />
+            <Ionicons
+              name="book-outline"
+              size={34}
+              color="#000000"
+              style={styles.headerIconLeft}
+            />
             <Text style={styles.todoHeader}>บันทึกของฉัน</Text>
-            <Ionicons name="pencil-outline" size={24} color="#000000" style={styles.headerIconRight} />
+            <TouchableOpacity onPress={toggleMenu}>
+              <Ionicons
+                name="person-outline"
+                size={24}
+                color="#000000"
+                style={styles.headerIconRight}
+              />
+            </TouchableOpacity>
           </View>
           <View style={styles.headerUnderline} />
         </View>
@@ -98,28 +142,35 @@ export default function Index() {
                   key={todo.id}
                   todo={todo}
                   onPress={() => openPopup(todo)}
-                  onLongPress={() => showDeleteAlert(todo)} // ใช้งานได้หลังแก้ CardProps
+                  onLongPress={() => showDeleteAlert(todo)}
                 />
               ))
           ) : (
             <View style={styles.noTodoContainer}>
               <Text style={styles.noTodoText}>ไม่พบบันทึก</Text>
-              <Text style={styles.noTodoSubText}>แตะ "สร้างบันทึก" เพื่อเริ่มต้น</Text>
+              <Text style={styles.noTodoSubText}>
+                แตะ "สร้างบันทึก" เพื่อเริ่มต้น
+              </Text>
             </View>
           )}
         </ScrollView>
 
-        {/* Create Button */}
+        {/* Button Container */}
         <View style={styles.buttonContainer}>
           <Link asChild href="/create">
             <AppButton style={styles.createButton}>
-              <Ionicons name="create-outline" size={24} color="#FFFFFF" style={styles.buttonIcon} />
+              <Ionicons
+                name="create-outline"
+                size={24}
+                color="#FFFFFF"
+                style={styles.buttonIcon}
+              />
               <Text style={styles.buttonText}>สร้างบันทึก</Text>
             </AppButton>
           </Link>
         </View>
 
-        {/* Modal */}
+        {/* Modal for Todo Details */}
         <Modal
           animationType="fade"
           transparent={true}
@@ -132,18 +183,71 @@ export default function Index() {
                 <>
                   <Text style={styles.modalTitle}>{selectedTodo.text}</Text>
                   <Text style={styles.modalTimestamp}>
-                    สร้างเมื่อ: {selectedTodo.timestamp
-                      ? new Date(selectedTodo.timestamp).toLocaleString('th-TH')
+                    สร้างเมื่อ:{" "}
+                    {selectedTodo.timestamp
+                      ? new Date(selectedTodo.timestamp).toLocaleString(
+                          "th-TH"
+                        )
                       : "ไม่มี timestamp"}
                   </Text>
-                  <TouchableOpacity onPress={closePopup} style={styles.closeButton}>
-                    <Ionicons name="close-circle-outline" size={24} color="#FFFFFF" />
+                  <TouchableOpacity
+                    onPress={closePopup}
+                    style={styles.closeButton}
+                  >
+                    <Ionicons
+                      name="close-circle-outline"
+                      size={24}
+                      color="#FFFFFF"
+                    />
                     <Text style={styles.closeButtonText}>ปิด</Text>
                   </TouchableOpacity>
                 </>
               )}
             </View>
           </View>
+        </Modal>
+
+        {/* Popup Menu */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={menuVisible}
+          onRequestClose={toggleMenu}
+        >
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            activeOpacity={1}
+            onPress={toggleMenu}
+          >
+            <View style={styles.menuContent}>
+              <Link href="/about" asChild>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => setMenuVisible(false)}
+                >
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={20}
+                    color="#000000"
+                  />
+                  <Text style={styles.menuText}>เกี่ยวกับ</Text>
+                </TouchableOpacity>
+              </Link>
+              <TouchableOpacity style={styles.menuItem}>
+                <Ionicons name="settings-outline" size={20} color="#000000" />
+                <Text style={styles.menuText}>ตั้งค่า</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={handleLogout}
+              >
+                <Ionicons name="log-out-outline" size={20} color="#FF0000" />
+                <Text style={[styles.menuText, { color: "#FF0000" }]}>
+                  ล็อกเอาท์
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
         </Modal>
 
         {/* Custom Alert */}
@@ -157,7 +261,7 @@ export default function Index() {
   );
 }
 
-// เพิ่ม styles เพื่อแก้ error
+// Styles (เพิ่มสไตล์สำหรับเมนูป๊อปอัพ)
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -298,6 +402,39 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontWeight: "bold",
     marginLeft: 8,
+  },
+  // Styles สำหรับ Popup Menu
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    justifyContent: "flex-start",
+    alignItems: "flex-end",
+  },
+  menuContent: {
+    backgroundColor: "#FFFFFF",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 80, // ระยะจากด้านบนให้อยู่ใต้ header
+    marginRight: 20,
+    width: 150,
+    borderWidth: 1,
+    borderColor: "#000000",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+  },
+  menuText: {
+    fontSize: 16,
+    color: "#000000",
+    marginLeft: 10,
   },
   alertOverlay: {
     flex: 1,

@@ -19,6 +19,12 @@ export default function RootLayout() {
               headerTitle: "Create Todo",
             }}
           />
+          <Stack.Screen
+            name="about"
+            options={{
+              headerTitle: "About",
+            }}
+          />
         </Stack>
       </TodoProvider>
     </PaperProvider>
