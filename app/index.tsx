@@ -10,9 +10,10 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { AppButton } from "@/components";
-import TodoContext, { Todo } from "@/context/Todo.context";
+import { TodoContext as TodoContextInstance, Todo } from "@/context/Todo.context";
 import Card from "@/components/Card";
 import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 
 // Custom Alert Component (ปรับเป็นภาษาไทย)
 const CustomAlert = ({
@@ -58,12 +59,22 @@ const CustomAlert = ({
 };
 
 export default function Index() {
-  const { todos, removeTodo } = useContext(TodoContext);
+  const { todos, removeTodo } = useContext(TodoContextInstance);
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
-  const [menuVisible, setMenuVisible] = useState(false); // State สำหรับเมนูป๊อปอัพ
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  // โหลดฟอนต์ของ Ionicons
+  const [fontsLoaded] = useFonts({
+    Ionicons: require("@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf"),
+  });
+
+  // รอให้ฟอนต์โหลดก่อนเรนเดอร์
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const openPopup = (todo: Todo) => {
     setSelectedTodo(todo);
@@ -99,7 +110,6 @@ export default function Index() {
 
   const handleLogout = () => {
     setMenuVisible(false);
-    // ใส่逻辑การล็อกเอาท์ที่นี่ เช่น ล้างข้อมูลผู้ใช้ หรือเปลี่ยนหน้าไป login
     console.log("Logged out");
   };
 
@@ -114,6 +124,7 @@ export default function Index() {
               size={34}
               color="#000000"
               style={styles.headerIconLeft}
+              onLayout={() => console.log("Header icon rendered")}
             />
             <Text style={styles.todoHeader}>บันทึกของฉัน</Text>
             <TouchableOpacity onPress={toggleMenu}>
@@ -122,6 +133,7 @@ export default function Index() {
                 size={24}
                 color="#000000"
                 style={styles.headerIconRight}
+                onLayout={() => console.log("Profile icon rendered")}
               />
             </TouchableOpacity>
           </View>
@@ -149,7 +161,7 @@ export default function Index() {
             <View style={styles.noTodoContainer}>
               <Text style={styles.noTodoText}>ไม่พบบันทึก</Text>
               <Text style={styles.noTodoSubText}>
-                แตะ "สร้างบันทึก" เพื่อเริ่มต้น
+                แตะปุ่มด้านล่างเพื่อเริ่มต้น
               </Text>
             </View>
           )}
@@ -163,9 +175,8 @@ export default function Index() {
                 name="create-outline"
                 size={24}
                 color="#FFFFFF"
-                style={styles.buttonIcon}
+                onLayout={() => console.log("Create icon rendered")}
               />
-              <Text style={styles.buttonText}>สร้างบันทึก</Text>
             </AppButton>
           </Link>
         </View>
@@ -179,30 +190,32 @@ export default function Index() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              {selectedTodo && (
-                <>
-                  <Text style={styles.modalTitle}>{selectedTodo.text}</Text>
-                  <Text style={styles.modalTimestamp}>
-                    สร้างเมื่อ:{" "}
-                    {selectedTodo.timestamp
-                      ? new Date(selectedTodo.timestamp).toLocaleString(
-                          "th-TH"
-                        )
-                      : "ไม่มี timestamp"}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={closePopup}
-                    style={styles.closeButton}
-                  >
-                    <Ionicons
-                      name="close-circle-outline"
-                      size={24}
-                      color="#FFFFFF"
-                    />
-                    <Text style={styles.closeButtonText}>ปิด</Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <ScrollView contentContainerStyle={styles.modalScrollContent}>
+                {selectedTodo && (
+                  <>
+                    <Text style={styles.modalTitle}>{selectedTodo.text}</Text>
+                    <Text style={styles.modalTimestamp}>
+                      สร้างเมื่อ:{" "}
+                      {selectedTodo.timestamp
+                        ? new Date(selectedTodo.timestamp).toLocaleString(
+                            "th-TH"
+                          )
+                        : "ไม่มี timestamp"}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={closePopup}
+                      style={styles.closeButton}
+                    >
+                      <Ionicons
+                        name="close-circle-outline"
+                        size={24}
+                        color="#FFFFFF"
+                      />
+                      <Text style={styles.closeButtonText}>ปิด</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </ScrollView>
             </View>
           </View>
         </Modal>
@@ -261,7 +274,7 @@ export default function Index() {
   );
 }
 
-// Styles (เพิ่มสไตล์สำหรับเมนูป๊อปอัพ)
+// Styles (ปรับสไตล์สำหรับ Modal ที่เลื่อนได้)
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -338,26 +351,21 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonContainer: {
-    padding: 20,
-    backgroundColor: "#FFFFFF",
+    position: "absolute",
+    bottom: 20,
+    right: 20,
     alignItems: "center",
   },
   createButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#000000",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonIcon: {
-    marginRight: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   buttonText: {
     color: "#FFFFFF",
@@ -372,23 +380,28 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
-    padding: 20,
     borderRadius: 10,
     width: "80%",
-    alignItems: "center",
+    maxHeight: "80%", // จำกัดความสูงเพื่อให้เลื่อนได้
     borderWidth: 1,
     borderColor: "#000000",
+  },
+  modalScrollContent: {
+    padding: 20,
+    alignItems: "center",
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#000000",
     marginBottom: 10,
+    textAlign: "center",
   },
   modalTimestamp: {
     fontSize: 14,
     color: "#666666",
     marginBottom: 20,
+    textAlign: "center",
   },
   closeButton: {
     flexDirection: "row",
@@ -403,7 +416,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
   },
-  // Styles สำหรับ Popup Menu
   menuOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.3)",
@@ -414,7 +426,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     padding: 10,
     borderRadius: 8,
-    marginTop: 80, // ระยะจากด้านบนให้อยู่ใต้ header
+    marginTop: 80,
     marginRight: 20,
     width: 150,
     borderWidth: 1,
