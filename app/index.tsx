@@ -6,22 +6,27 @@ import TodoContext, { Todo } from "@/context/Todo.context";
 import Card from "@/components/Card";
 import { Ionicons } from '@expo/vector-icons';
 
-// Custom Alert Component
-const CustomAlert = ({ visible, title, message, onClose }: { visible: boolean; title: string; message: string; onClose: () => void }) => {
+// Custom Alert Component (ปรับเป็นภาษาไทย)
+const CustomAlert = ({ visible, onConfirm, onCancel }: { visible: boolean; onConfirm: () => void; onCancel: () => void }) => {
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
+      onRequestClose={onCancel}
     >
       <View style={styles.alertOverlay}>
         <View style={styles.alertContent}>
-          <Text style={styles.alertTitle}>{title}</Text>
-          <Text style={styles.alertMessage}>{message}</Text>
-          <TouchableOpacity style={styles.alertButton} onPress={onClose}>
-            <Text style={styles.alertButtonText}>ตกลง</Text>
-          </TouchableOpacity>
+          <Text style={styles.alertTitle}>ลบรายการ</Text>
+          <Text style={styles.alertMessage}>คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้?</Text>
+          <View style={styles.alertButtonContainer}>
+            <TouchableOpacity style={styles.alertCancelButton} onPress={onCancel}>
+              <Text style={styles.alertButtonText}>ยกเลิก</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.alertConfirmButton} onPress={onConfirm}>
+              <Text style={styles.alertButtonText}>ยืนยัน</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -29,12 +34,11 @@ const CustomAlert = ({ visible, title, message, onClose }: { visible: boolean; t
 };
 
 export default function Index() {
-  const { todos } = useContext(TodoContext);
+  const { todos, removeTodo } = useContext(TodoContext); // แก้จาก deleteTodo เป็น removeTodo
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
-  const [alertTitle, setAlertTitle] = useState("");
-  const [alertMessage, setAlertMessage] = useState("");
+  const [todoToDelete, setTodoToDelete] = useState<Todo | null>(null);
 
   const openPopup = (todo: Todo) => {
     setSelectedTodo(todo);
@@ -46,14 +50,25 @@ export default function Index() {
     setSelectedTodo(null);
   };
 
-  const showAlert = (title: string, message: string) => {
-    setAlertTitle(title);
-    setAlertMessage(message);
+  // แสดง Alert เมื่อกดค้าง
+  const showDeleteAlert = (todo: Todo) => {
+    setTodoToDelete(todo);
     setAlertVisible(true);
   };
 
-  const closeAlert = () => {
+  // ยืนยันการลบ
+  const confirmDelete = () => {
+    if (todoToDelete && removeTodo) {
+      removeTodo(todoToDelete.id); // แก้จาก deleteTodo เป็น removeTodo
+      setAlertVisible(false);
+      setTodoToDelete(null);
+    }
+  };
+
+  // ยกเลิกการลบ
+  const cancelDelete = () => {
     setAlertVisible(false);
+    setTodoToDelete(null);
   };
 
   return (
@@ -79,7 +94,12 @@ export default function Index() {
               .slice()
               .reverse()
               .map((todo) => (
-                <Card key={todo.id} todo={todo} onPress={() => openPopup(todo)} />
+                <Card
+                  key={todo.id}
+                  todo={todo}
+                  onPress={() => openPopup(todo)}
+                  onLongPress={() => showDeleteAlert(todo)} // ใช้งานได้หลังแก้ CardProps
+                />
               ))
           ) : (
             <View style={styles.noTodoContainer}>
@@ -129,15 +149,15 @@ export default function Index() {
         {/* Custom Alert */}
         <CustomAlert
           visible={alertVisible}
-          title={alertTitle}
-          message={alertMessage}
-          onClose={closeAlert}
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
         />
       </View>
     </SafeAreaView>
   );
 }
 
+// เพิ่ม styles เพื่อแก้ error
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -147,7 +167,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
   },
-  // Header Styles
   headerContainer: {
     paddingTop: 40,
     paddingHorizontal: 20,
@@ -188,7 +207,6 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 10,
   },
-  // Todo List Styles
   todoContainer: {
     flex: 1,
   },
@@ -215,7 +233,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     opacity: 0.7,
   },
-  // Button Styles
   buttonContainer: {
     padding: 20,
     backgroundColor: "#FFFFFF",
@@ -243,7 +260,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -283,7 +299,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 8,
   },
-  // Custom Alert Styles
   alertOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -293,7 +308,7 @@ const styles = StyleSheet.create({
   alertContent: {
     backgroundColor: "#FFFFFF",
     padding: 20,
-    borderRadius: 15, // ขอบโค้งมน
+    borderRadius: 15,
     width: "80%",
     alignItems: "center",
     borderWidth: 1,
@@ -316,8 +331,18 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
-  alertButton: {
-    backgroundColor: "#000000",
+  alertButtonContainer: {
+    flexDirection: "row",
+    gap: 20,
+  },
+  alertCancelButton: {
+    backgroundColor: "#CCCCCC",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  alertConfirmButton: {
+    backgroundColor: "#FF0000",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
